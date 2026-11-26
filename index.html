@@ -1,0 +1,2356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="AirPods PEQ" />
+  <meta name="theme-color" content="#F4F6FA" />
+  <title>AirPods PEQ Studio — Squig.link Parametric Equalizer</title>
+  <style>
+    :root {
+      --bg: #F4F6FA;
+      --surface: #FFFFFF;
+      --surface-soft: #F8FAFC;
+      --surface-tint: #EFF6FF;
+      --border: #E2E8F0;
+      --border-strong: #CBD5E1;
+      --text: #0F172A;
+      --text-secondary: #475569;
+      --text-muted: #94A3B8;
+      --accent: #007AFF;
+      --accent-hover: #0062CC;
+      --accent-soft: rgba(0, 122, 255, 0.11);
+      --emerald: #10B981;
+      --emerald-soft: rgba(16, 185, 129, 0.12);
+      --amber: #F59E0B;
+      --amber-soft: rgba(245, 158, 11, 0.14);
+      --rose: #EF4444;
+      --rose-soft: rgba(239, 68, 68, 0.12);
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 6px 20px rgba(15, 23, 42, 0.05);
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior-y: none;
+    }
+
+    body {
+      padding-top: calc(12px + env(safe-area-inset-top));
+      padding-bottom: calc(36px + env(safe-area-inset-bottom));
+      padding-left: calc(14px + env(safe-area-inset-left));
+      padding-right: calc(14px + env(safe-area-inset-right));
+    }
+
+    .app {
+      max-width: 680px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 4px 2px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #007AFF 0%, #38BDF8 100%);
+      color: #FFFFFF;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
+      flex-shrink: 0;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .brand p {
+      margin: 1px 0 0;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .bypass-pill {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.16s ease;
+    }
+
+    .bypass-pill .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 0 3px var(--emerald-soft);
+    }
+
+    .bypass-pill.is-bypassed {
+      background: var(--amber-soft);
+      border-color: rgba(245, 158, 11, 0.35);
+      color: #B45309;
+    }
+
+    .bypass-pill.is-bypassed .dot {
+      background: var(--amber);
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 15px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    .tabular {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Buttons & Inputs */
+    .btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--surface-soft);
+      color: var(--text);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+      white-space: nowrap;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #FFFFFF;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-soft {
+      background: var(--accent-soft);
+      border-color: transparent;
+      color: var(--accent);
+    }
+
+    .btn-danger-soft {
+      background: var(--rose-soft);
+      border-color: transparent;
+      color: var(--rose);
+    }
+
+    .btn-sm {
+      padding: 6px 10px;
+      font-size: 12px;
+      border-radius: 8px;
+    }
+
+    select, input[type="number"], textarea {
+      font-family: inherit;
+      font-size: 16px; /* Prevents iOS Safari auto-zoom */
+      color: var(--text);
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      outline: none;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    select:focus, input[type="number"]:focus, textarea:focus {
+      border-color: var(--accent);
+      background: #FFFFFF;
+    }
+
+    /* Preset & Squig.link Bar */
+    .preset-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .preset-row select {
+      width: 100%;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 9px 10px;
+    }
+
+    .action-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+    }
+
+    @media (max-width: 440px) {
+      .action-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .paste-drawer {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .paste-drawer.open {
+      display: flex;
+    }
+
+    .paste-drawer textarea {
+      width: 100%;
+      min-height: 105px;
+      resize: vertical;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .status-banner {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: var(--surface-soft);
+      border-radius: 8px;
+      padding: 7px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    /* Graph Card */
+    .graph-legend {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .legend-line {
+      width: 14px;
+      height: 2.5px;
+      border-radius: 2px;
+    }
+
+    .legend-line.dashed {
+      background: repeating-linear-gradient(90deg, var(--emerald) 0 4px, transparent 4px 7px);
+    }
+
+    .canvas-wrap {
+      position: relative;
+      width: 100%;
+      height: 230px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(180deg, #FAFBFD 0%, #F1F5F9 100%);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    #eqCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    .canvas-tooltip {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(15, 23, 42, 0.88);
+      color: #FFFFFF;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 999px;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity 0.14s ease, transform 0.14s ease;
+      backdrop-filter: blur(6px);
+    }
+
+    .canvas-tooltip.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Preamp & Protection Strip */
+    .preamp-box {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .slider-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .slider-controls {
+      display: grid;
+      grid-template-columns: 1fr 84px;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .slider-controls input[type="number"] {
+      width: 100%;
+      text-align: right;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 6px 8px;
+    }
+
+    .utility-pills {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .toggle-chip {
+      border: 1px solid var(--border);
+      background: var(--surface-soft);
+      color: var(--text-secondary);
+      border-radius: 999px;
+      padding: 5px 11px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .toggle-chip.active {
+      background: var(--accent-soft);
+      border-color: rgba(0, 122, 255, 0.3);
+      color: var(--accent);
+    }
+
+    .pan-group {
+      display: inline-flex;
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 2px;
+    }
+
+    .pan-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .pan-btn.active {
+      background: #FFFFFF;
+      color: var(--text);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Range Sliders */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: #E2E8F0;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      border: 2.5px solid var(--accent);
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.16);
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      border: 2.5px solid var(--accent);
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.16);
+      cursor: pointer;
+    }
+
+    /* Audio Player & Signal Lab */
+    .player-grid {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .play-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: none;
+      background: var(--accent);
+      color: #FFFFFF;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 122, 255, 0.28);
+      flex-shrink: 0;
+    }
+
+    .play-btn:active {
+      transform: scale(0.96);
+    }
+
+    .track-meta {
+      min-width: 0;
+    }
+
+    .track-title {
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .track-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .source-row {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+
+    .source-row select {
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 10px;
+    }
+
+    /* Band Selector & Editor */
+    .band-strip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      scrollbar-width: none;
+    }
+
+    .band-strip::-webkit-scrollbar {
+      display: none;
+    }
+
+    .band-chip {
+      border: 1px solid var(--border);
+      background: var(--surface-soft);
+      color: var(--text);
+      border-radius: 11px;
+      padding: 6px 10px;
+      min-width: 58px;
+      text-align: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.14s ease;
+    }
+
+    .band-chip.selected {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #FFFFFF;
+      box-shadow: 0 3px 10px rgba(0, 122, 255, 0.25);
+    }
+
+    .band-chip.disabled {
+      opacity: 0.48;
+    }
+
+    .band-chip .b-num {
+      font-size: 11px;
+      font-weight: 700;
+      display: block;
+    }
+
+    .band-chip .b-freq {
+      font-size: 11px;
+      opacity: 0.88;
+      display: block;
+      margin-top: 1px;
+    }
+
+    .editor-panel {
+      margin-top: 10px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .type-pills {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 5px;
+    }
+
+    .type-pill {
+      border: 1px solid var(--border);
+      background: var(--surface-soft);
+      color: var(--text-secondary);
+      border-radius: 8px;
+      padding: 7px 4px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .type-pill.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .param-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .param-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    /* Overview Table */
+    .overview-list {
+      margin-top: 12px;
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .overview-row {
+      display: grid;
+      grid-template-columns: 28px 42px 1fr 64px 54px;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 9px;
+      border-radius: 9px;
+      background: var(--surface-soft);
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .overview-row.selected {
+      background: var(--surface-tint);
+      outline: 1px solid rgba(0, 122, 255, 0.3);
+    }
+
+    .overview-row.off {
+      opacity: 0.45;
+    }
+
+    .badge-type {
+      font-weight: 700;
+      font-size: 11px;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 2px 5px;
+      border-radius: 5px;
+      text-align: center;
+    }
+
+    .hint-text {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.45;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Top Header -->
+    <header class="header">
+      <div class="brand">
+        <div class="brand-badge" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" y1="21" x2="4" y2="14"></line>
+            <line x1="4" y1="10" x2="4" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12" y2="3"></line>
+            <line x1="20" y1="21" x2="20" y2="16"></line>
+            <line x1="20" y1="12" x2="20" y2="3"></line>
+            <circle cx="4" cy="12" r="2"></circle>
+            <circle cx="12" cy="10" r="2"></circle>
+            <circle cx="20" cy="14" r="2"></circle>
+          </svg>
+        </div>
+        <div>
+          <h1>AirPods PEQ Studio</h1>
+          <p>Squig.link Parametric EQ &amp; Target Tuner</p>
+        </div>
+      </div>
+      <button id="bypassBtn" class="bypass-pill" type="button" aria-pressed="false">
+        <span class="dot"></span>
+        <span id="bypassLabel">EQ Active</span>
+      </button>
+    </header>
+
+    <!-- Squig.link Profile & Preset Manager -->
+    <section class="card" aria-label="Squig.link Profile Manager">
+      <div class="card-header">
+        <h2 class="card-title">Squig.link &amp; AirPods Presets</h2>
+        <span id="bandCountBadge" class="tabular" style="font-size:12px;font-weight:600;color:var(--text-secondary);">6 Bands</span>
+      </div>
+
+      <div class="preset-row">
+        <select id="presetSelect" aria-label="Select EQ Preset"></select>
+        <button id="savePresetBtn" class="btn btn-soft" type="button" title="Save current curve as preset">Save</button>
+        <button id="deletePresetBtn" class="btn btn-danger-soft" type="button" title="Delete custom preset" style="display:none;">Del</button>
+      </div>
+
+      <div class="action-grid">
+        <button id="uploadBtn" class="btn btn-primary" type="button">Upload .txt</button>
+        <button id="pasteToggleBtn" class="btn" type="button">Paste Text</button>
+        <button id="copyApoBtn" class="btn" type="button">Copy APO</button>
+        <button id="exportTxtBtn" class="btn" type="button">Export .txt</button>
+      </div>
+      <input id="fileInput" type="file" accept=".txt,.csv,text/plain" hidden />
+
+      <div id="pasteDrawer" class="paste-drawer">
+        <textarea id="squigTextarea" placeholder="Paste Equalizer APO output or Wavelet GraphicEQ line from squig.link&#10;Example:&#10;Preamp: -4.2 dB&#10;Filter 1: ON PK Fc 105 Hz Gain -2.4 dB Q 0.72"></textarea>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button id="closePasteBtn" class="btn btn-sm" type="button">Cancel</button>
+          <button id="parsePasteBtn" class="btn btn-primary btn-sm" type="button">Apply Squig.link EQ</button>
+        </div>
+      </div>
+
+      <div class="status-banner">
+        <span id="importStatus">Ready — upload or paste any Squig.link AutoEQ file.</span>
+      </div>
+    </section>
+
+    <!-- Interactive Frequency Response Curve -->
+    <section class="card" aria-label="Frequency Response Graph">
+      <div class="card-header">
+        <h2 class="card-title">Frequency Response</h2>
+        <div class="graph-legend">
+          <span class="legend-item"><span class="legend-line" style="background:var(--accent);"></span>EQ Curve</span>
+          <span class="legend-item"><span class="legend-line dashed"></span>Net + Preamp</span>
+        </div>
+      </div>
+
+      <div class="canvas-wrap">
+        <canvas id="eqCanvas"></canvas>
+        <div id="canvasTooltip" class="canvas-tooltip tabular">Band 1 · 100 Hz · 0.0 dB</div>
+      </div>
+
+      <div class="preamp-box">
+        <div class="slider-head">
+          <span>Preamp Headroom</span>
+          <span id="peakReadout" class="tabular" style="font-size:12px;color:var(--text-secondary);">Peak Boost: +0.0 dB</span>
+        </div>
+        <div class="slider-controls">
+          <input id="preampSlider" type="range" min="-18" max="6" step="0.1" value="0" aria-label="Preamp Gain dB" />
+          <input id="preampInput" class="tabular" type="number" min="-18" max="6" step="0.1" value="0.0" aria-label="Preamp Gain Numeric" />
+        </div>
+
+        <div class="utility-pills">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button id="autoPreampBtn" class="toggle-chip" type="button">Auto-Level</button>
+            <button id="limiterBtn" class="toggle-chip active" type="button">Safety Limiter</button>
+            <button id="fftToggleBtn" class="toggle-chip active" type="button">Live RTA</button>
+          </div>
+          <div class="pan-group" role="group" aria-label="Stereo Balance">
+            <button class="pan-btn" data-pan="-1" type="button">L</button>
+            <button class="pan-btn active" data-pan="0" type="button">Center</button>
+            <button class="pan-btn" data-pan="1" type="button">R</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Audio Player & Acoustic Signal Lab -->
+    <section class="card" aria-label="Audio Audition and Test Signals">
+      <div class="card-header">
+        <h2 class="card-title">Audition &amp; AirPods Seal Lab</h2>
+        <span id="trackTimeLabel" class="tabular" style="font-size:12px;color:var(--text-secondary);">0:00 / 0:00</span>
+      </div>
+
+      <div class="player-grid">
+        <button id="playPauseBtn" class="play-btn" type="button" aria-label="Play or Pause Audio">
+          <svg id="playIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="6 4 20 12 6 20 6 4"></polygon>
+          </svg>
+        </button>
+        <div class="track-meta">
+          <div id="trackNameLabel" class="track-title">Warm Harmonic Reference Pad</div>
+          <div id="trackSubLabel" class="track-sub">Built-in test generator · Instant A/B audition</div>
+        </div>
+        <button id="audioFileBtn" class="btn btn-soft btn-sm" type="button">Load Audio</button>
+      </div>
+
+      <div style="margin-top:10px;">
+        <input id="seekSlider" type="range" min="0" max="1000" value="0" aria-label="Playback Position" />
+      </div>
+
+      <div class="source-row">
+        <select id="signalModeSelect" aria-label="Select Built-in Reference Signal">
+          <option value="pad">Signal Lab: Warm Harmonic Reference Pad</option>
+          <option value="pink">Signal Lab: Pink Noise (Target Curve Check)</option>
+          <option value="sweep">Signal Lab: 20 Hz – 20 kHz Log Sweep</option>
+          <option value="seal">Signal Lab: 55 Hz Sub-Bass Seal Pulse</option>
+        </select>
+        <span style="font-size:11px;color:var(--text-muted);align-self:center;padding-right:4px;">48 kHz Float</span>
+      </div>
+      <input id="audioFileInput" type="file" accept="audio/*,.mp3,.m4a,.wav,.flac,.aac,.ogg" hidden />
+      <audio id="audioEl" playsinline crossorigin="anonymous" hidden></audio>
+    </section>
+
+    <!-- Parametric Band Editor -->
+    <section class="card" aria-label="Parametric Band Editor">
+      <div class="card-header">
+        <h2 class="card-title">Parametric Bands</h2>
+        <div style="display:flex;gap:6px;">
+          <button id="addBandBtn" class="btn btn-soft btn-sm" type="button">+ Band</button>
+          <button id="resetBandsBtn" class="btn btn-sm" type="button">Reset</button>
+        </div>
+      </div>
+
+      <div id="bandChips" class="band-strip" role="tablist" aria-label="EQ Bands"></div>
+
+      <div id="bandEditorPanel" class="editor-panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <strong id="selectedBandTitle" style="font-size:14px;">Band 1</strong>
+          <div style="display:flex;gap:6px;">
+            <button id="bandOnToggle" class="toggle-chip active" type="button">Enabled</button>
+            <button id="deleteBandBtn" class="btn btn-danger-soft btn-sm" type="button">Remove</button>
+          </div>
+        </div>
+
+        <div id="typeSelector" class="type-pills" role="group" aria-label="Filter Type">
+          <button class="type-pill active" data-type="PK" type="button">PK</button>
+          <button class="type-pill" data-type="LS" type="button">LS</button>
+          <button class="type-pill" data-type="HS" type="button">HS</button>
+          <button class="type-pill" data-type="LP" type="button">LP</button>
+          <button class="type-pill" data-type="HP" type="button">HP</button>
+          <button class="type-pill" data-type="NO" type="button">NO</button>
+        </div>
+
+        <div class="param-group">
+          <div class="param-label">
+            <span>Center Frequency (Hz)</span>
+            <span>20 Hz – 20 kHz</span>
+          </div>
+          <div class="slider-controls">
+            <input id="freqSlider" type="range" min="0" max="1000" step="1" value="300" aria-label="Frequency Slider" />
+            <input id="freqInput" class="tabular" type="number" min="20" max="20000" step="1" value="100" aria-label="Frequency Hz" />
+          </div>
+        </div>
+
+        <div class="param-group" id="gainParamGroup">
+          <div class="param-label">
+            <span>Gain (dB)</span>
+            <span>-18.0 to +18.0 dB</span>
+          </div>
+          <div class="slider-controls">
+            <input id="gainSlider" type="range" min="-18" max="18" step="0.1" value="0" aria-label="Gain Slider" />
+            <input id="gainInput" class="tabular" type="number" min="-18" max="18" step="0.1" value="0.0" aria-label="Gain dB" />
+          </div>
+        </div>
+
+        <div class="param-group">
+          <div class="param-label">
+            <span>Q Factor (Bandwidth)</span>
+            <span>0.10 – 15.0</span>
+          </div>
+          <div class="slider-controls">
+            <input id="qSlider" type="range" min="0" max="1000" step="1" value="400" aria-label="Q Factor Slider" />
+            <input id="qInput" class="tabular" type="number" min="0.1" max="15" step="0.01" value="1.00" aria-label="Q Factor" />
+          </div>
+        </div>
+      </div>
+
+      <div id="allBandsList" class="overview-list" aria-label="All EQ Bands Summary"></div>
+    </section>
+
+    <p class="hint-text" style="padding:0 4px;">
+      Tip: In Squig.link, open the <strong>Equalizer</strong> tab, choose your AirPods model and target curve, tap <strong>Export</strong>, and upload the downloaded <code>.txt</code> file here. Note that iOS Web Audio applies EQ to audio played inside this page or exported parameters.
+    </p>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      /* -----------------------------
+         Built-in AirPods Presets
+      ------------------------------ */
+      const BUILTIN_PRESETS = [
+        {
+          id: "pro2-harman",
+          name: "AirPods Pro 2 → Harman IE 2019",
+          preamp: -4.4,
+          bands: [
+            { enabled: true, type: "LS", freq: 95, gain: 2.6, q: 0.72 },
+            { enabled: true, type: "PK", freq: 240, gain: -1.8, q: 1.15 },
+            { enabled: true, type: "PK", freq: 1450, gain: 1.4, q: 1.80 },
+            { enabled: true, type: "PK", freq: 3150, gain: 3.4, q: 2.10 },
+            { enabled: true, type: "PK", freq: 5800, gain: -2.9, q: 3.40 },
+            { enabled: true, type: "HS", freq: 10500, gain: 2.2, q: 0.75 }
+          ]
+        },
+        {
+          id: "pro1-ief",
+          name: "AirPods Pro 1 → IEF Neutral + Sub-Bass",
+          preamp: -4.8,
+          bands: [
+            { enabled: true, type: "LS", freq: 85, gain: 4.2, q: 0.70 },
+            { enabled: true, type: "PK", freq: 280, gain: -1.6, q: 1.20 },
+            { enabled: true, type: "PK", freq: 2850, gain: 2.8, q: 1.90 },
+            { enabled: true, type: "PK", freq: 6200, gain: -2.4, q: 3.10 },
+            { enabled: true, type: "HS", freq: 11500, gain: 2.5, q: 0.75 }
+          ]
+        },
+        {
+          id: "airpods-max",
+          name: "AirPods Max → Diffuse Field Clarity",
+          preamp: -4.1,
+          bands: [
+            { enabled: true, type: "LS", freq: 105, gain: -1.8, q: 0.70 },
+            { enabled: true, type: "PK", freq: 1950, gain: 2.4, q: 1.65 },
+            { enabled: true, type: "PK", freq: 3400, gain: 3.8, q: 2.20 },
+            { enabled: true, type: "PK", freq: 6700, gain: -2.7, q: 3.50 },
+            { enabled: true, type: "HS", freq: 12000, gain: 1.6, q: 0.80 }
+          ]
+        },
+        {
+          id: "airpods-open",
+          name: "AirPods 3 / 4 → Open-Fit Sub-Bass Lift",
+          preamp: -5.5,
+          bands: [
+            { enabled: true, type: "LS", freq: 90, gain: 5.4, q: 0.72 },
+            { enabled: true, type: "PK", freq: 210, gain: -2.5, q: 1.10 },
+            { enabled: true, type: "PK", freq: 2600, gain: 2.1, q: 1.75 },
+            { enabled: true, type: "PK", freq: 5400, gain: -2.2, q: 2.90 },
+            { enabled: true, type: "HS", freq: 10000, gain: 1.8, q: 0.75 }
+          ]
+        },
+        {
+          id: "flat-ref",
+          name: "Flat Reference (0.0 dB)",
+          preamp: 0.0,
+          bands: [
+            { enabled: true, type: "LS", freq: 80, gain: 0.0, q: 0.71 },
+            { enabled: true, type: "PK", freq: 250, gain: 0.0, q: 1.20 },
+            { enabled: true, type: "PK", freq: 1000, gain: 0.0, q: 1.40 },
+            { enabled: true, type: "PK", freq: 3200, gain: 0.0, q: 2.00 },
+            { enabled: true, type: "PK", freq: 6500, gain: 0.0, q: 2.80 },
+            { enabled: true, type: "HS", freq: 11000, gain: 0.0, q: 0.71 }
+          ]
+        }
+      ];
+
+      const STORAGE_KEY = "airpods_peq_custom_presets_v2";
+
+      /* -----------------------------
+         Application State
+      ------------------------------ */
+      const state = {
+        preamp: -4.4,
+        bands: JSON.parse(JSON.stringify(BUILTIN_PRESETS[0].bands)),
+        selectedBand: 0,
+        bypass: false,
+        limiter: true,
+        showFft: true,
+        pan: 0,
+        activePresetId: "pro2-harman",
+        customPresets: [],
+        sourceType: "signal", // "signal" | "file"
+        signalMode: "pad",
+        isPlaying: false,
+        currentObjectUrl: null,
+        draggingBand: -1
+      };
+
+      /* -----------------------------
+         DOM References
+      ------------------------------ */
+      const el = {
+        bypassBtn: document.getElementById("bypassBtn"),
+        bypassLabel: document.getElementById("bypassLabel"),
+        bandCountBadge: document.getElementById("bandCountBadge"),
+        presetSelect: document.getElementById("presetSelect"),
+        savePresetBtn: document.getElementById("savePresetBtn"),
+        deletePresetBtn: document.getElementById("deletePresetBtn"),
+        uploadBtn: document.getElementById("uploadBtn"),
+        fileInput: document.getElementById("fileInput"),
+        pasteToggleBtn: document.getElementById("pasteToggleBtn"),
+        pasteDrawer: document.getElementById("pasteDrawer"),
+        closePasteBtn: document.getElementById("closePasteBtn"),
+        squigTextarea: document.getElementById("squigTextarea"),
+        parsePasteBtn: document.getElementById("parsePasteBtn"),
+        copyApoBtn: document.getElementById("copyApoBtn"),
+        exportTxtBtn: document.getElementById("exportTxtBtn"),
+        importStatus: document.getElementById("importStatus"),
+        eqCanvas: document.getElementById("eqCanvas"),
+        canvasTooltip: document.getElementById("canvasTooltip"),
+        preampSlider: document.getElementById("preampSlider"),
+        preampInput: document.getElementById("preampInput"),
+        peakReadout: document.getElementById("peakReadout"),
+        autoPreampBtn: document.getElementById("autoPreampBtn"),
+        limiterBtn: document.getElementById("limiterBtn"),
+        fftToggleBtn: document.getElementById("fftToggleBtn"),
+        playPauseBtn: document.getElementById("playPauseBtn"),
+        playIcon: document.getElementById("playIcon"),
+        trackNameLabel: document.getElementById("trackNameLabel"),
+        trackSubLabel: document.getElementById("trackSubLabel"),
+        trackTimeLabel: document.getElementById("trackTimeLabel"),
+        seekSlider: document.getElementById("seekSlider"),
+        signalModeSelect: document.getElementById("signalModeSelect"),
+        audioFileBtn: document.getElementById("audioFileBtn"),
+        audioFileInput: document.getElementById("audioFileInput"),
+        audioEl: document.getElementById("audioEl"),
+        bandChips: document.getElementById("bandChips"),
+        addBandBtn: document.getElementById("addBandBtn"),
+        resetBandsBtn: document.getElementById("resetBandsBtn"),
+        selectedBandTitle: document.getElementById("selectedBandTitle"),
+        bandOnToggle: document.getElementById("bandOnToggle"),
+        deleteBandBtn: document.getElementById("deleteBandBtn"),
+        typeSelector: document.getElementById("typeSelector"),
+        gainParamGroup: document.getElementById("gainParamGroup"),
+        freqSlider: document.getElementById("freqSlider"),
+        freqInput: document.getElementById("freqInput"),
+        gainSlider: document.getElementById("gainSlider"),
+        gainInput: document.getElementById("gainInput"),
+        qSlider: document.getElementById("qSlider"),
+        qInput: document.getElementById("qInput"),
+        allBandsList: document.getElementById("allBandsList")
+      };
+
+      /* -----------------------------
+         Web Audio Engine
+      ------------------------------ */
+      let audioCtx = null;
+      let mediaSource = null;
+      let bufferSource = null;
+      let bufferStartTime = 0;
+      let bufferOffset = 0;
+      let activeSignalBuffer = null;
+      const signalBuffers = {};
+
+      let preampNode = null;
+      let filterNodes = [];
+      let wetGain = null;
+      let dryGain = null;
+      let limiterNode = null;
+      let pannerNode = null;
+      let analyserNode = null;
+      let fftData = null;
+
+      function ensureAudioEngine() {
+        if (!audioCtx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          audioCtx = new AudioContextClass();
+
+          preampNode = audioCtx.createGain();
+          wetGain = audioCtx.createGain();
+          dryGain = audioCtx.createGain();
+          limiterNode = audioCtx.createDynamicsCompressor();
+          pannerNode = audioCtx.createStereoPanner();
+          analyserNode = audioCtx.createAnalyser();
+
+          limiterNode.threshold.value = -0.6;
+          limiterNode.knee.value = 3;
+          limiterNode.ratio.value = 20;
+          limiterNode.attack.value = 0.002;
+          limiterNode.release.value = 0.08;
+
+          analyserNode.fftSize = 1024;
+          analyserNode.smoothingTimeConstant = 0.82;
+          fftData = new Uint8Array(analyserNode.frequencyBinCount);
+
+          wetGain.connect(limiterNode);
+          dryGain.connect(limiterNode);
+          limiterNode.connect(pannerNode);
+          pannerNode.connect(analyserNode);
+          analyserNode.connect(audioCtx.destination);
+
+          mediaSource = audioCtx.createMediaElementSource(el.audioEl);
+          mediaSource.connect(preampNode);
+          mediaSource.connect(dryGain);
+
+          audioCtx.addEventListener("statechange", () => {
+            if (audioCtx.state === "interrupted" && state.isPlaying) {
+              audioCtx.resume().catch(() => {});
+            }
+          });
+
+          rebuildFilterChain();
+          syncAudioParameters();
+        }
+
+        if (audioCtx.state === "suspended" || audioCtx.state === "interrupted") {
+          audioCtx.resume().catch(() => {});
+        }
+      }
+
+      function mapFilterType(shortType) {
+        switch (shortType) {
+          case "LS": return "lowshelf";
+          case "HS": return "highshelf";
+          case "LP": return "lowpass";
+          case "HP": return "highpass";
+          case "NO": return "notch";
+          case "PK":
+          default: return "peaking";
+        }
+      }
+
+      function rebuildFilterChain() {
+        if (!audioCtx) return;
+
+        preampNode.disconnect();
+        filterNodes.forEach(node => node.disconnect());
+        filterNodes = [];
+
+        let prev = preampNode;
+        state.bands.forEach(band => {
+          const bq = audioCtx.createBiquadFilter();
+          prev.connect(bq);
+          filterNodes.push(bq);
+          prev = bq;
+        });
+
+        prev.connect(wetGain);
+        syncAudioParameters();
+      }
+
+      function syncAudioParameters() {
+        if (!audioCtx) return;
+        const now = audioCtx.currentTime;
+
+        const linearPreamp = Math.pow(10, state.preamp / 20);
+        preampNode.gain.setTargetAtTime(linearPreamp, now, 0.015);
+
+        wetGain.gain.setTargetAtTime(state.bypass ? 0 : 1, now, 0.015);
+        dryGain.gain.setTargetAtTime(state.bypass ? 1 : 0, now, 0.015);
+
+        limiterNode.threshold.setTargetAtTime(state.limiter ? -0.6 : 0, now, 0.015);
+        limiterNode.ratio.setTargetAtTime(state.limiter ? 20 : 1, now, 0.015);
+
+        pannerNode.pan.setTargetAtTime(state.pan, now, 0.015);
+
+        state.bands.forEach((band, i) => {
+          const bq = filterNodes[i];
+          if (!bq) return;
+          if (!band.enabled) {
+            bq.type = "peaking";
+            bq.frequency.setTargetAtTime(band.freq, now, 0.015);
+            bq.gain.setTargetAtTime(0, now, 0.015);
+            bq.Q.setTargetAtTime(1, now, 0.015);
+          } else {
+            bq.type = mapFilterType(band.type);
+            const nyquist = audioCtx.sampleRate * 0.49;
+            bq.frequency.setTargetAtTime(Math.min(band.freq, nyquist), now, 0.015);
+            bq.gain.setTargetAtTime(band.gain, now, 0.015);
+            bq.Q.setTargetAtTime(Math.max(0.1, band.q), now, 0.015);
+          }
+        });
+      }
+
+      /* -----------------------------
+         Built-in Reference Signals
+      ------------------------------ */
+      function getSignalBuffer(mode) {
+        if (signalBuffers[mode]) return signalBuffers[mode];
+        const sr = audioCtx.sampleRate;
+
+        if (mode === "pink") {
+          const length = sr * 5;
+          const buffer = audioCtx.createBuffer(2, length, sr);
+          for (let ch = 0; ch < 2; ch++) {
+            const out = buffer.getChannelData(ch);
+            let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+            for (let i = 0; i < length; i++) {
+              const white = Math.random() * 2 - 1;
+              b0 = 0.99886 * b0 + white * 0.0555179;
+              b1 = 0.99332 * b1 + white * 0.0750759;
+              b2 = 0.96900 * b2 + white * 0.1538520;
+              b3 = 0.86650 * b3 + white * 0.3104856;
+              b4 = 0.55000 * b4 + white * 0.5329522;
+              b5 = -0.7616 * b5 - white * 0.0168980;
+              out[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.032;
+              b6 = white * 0.115926;
+            }
+          }
+          signalBuffers[mode] = buffer;
+          return buffer;
+        }
+
+        if (mode === "sweep") {
+          const duration = 8;
+          const length = sr * duration;
+          const buffer = audioCtx.createBuffer(2, length, sr);
+          const f0 = 20;
+          const f1 = 20000;
+          const k = Math.log(f1 / f0) / duration;
+          const left = buffer.getChannelData(0);
+          const right = buffer.getChannelData(1);
+          for (let i = 0; i < length; i++) {
+            const t = i / sr;
+            const phase = (2 * Math.PI * f0 / k) * (Math.exp(k * t) - 1);
+            const env = Math.min(1, t / 0.04) * Math.min(1, (duration - t) / 0.04);
+            const sample = Math.sin(phase) * 0.22 * env;
+            left[i] = sample;
+            right[i] = sample;
+          }
+          signalBuffers[mode] = buffer;
+          return buffer;
+        }
+
+        if (mode === "seal") {
+          const duration = 2;
+          const length = sr * duration;
+          const buffer = audioCtx.createBuffer(2, length, sr);
+          const left = buffer.getChannelData(0);
+          const right = buffer.getChannelData(1);
+          for (let i = 0; i < length; i++) {
+            const t = i / sr;
+            const beat = t % 1.0;
+            const env = beat < 0.45 ? Math.sin((beat / 0.45) * Math.PI) : 0;
+            const s = (Math.sin(2 * Math.PI * 55 * t) * 0.35 + Math.sin(2 * Math.PI * 110 * t) * 0.14) * env;
+            left[i] = s;
+            right[i] = s;
+          }
+          signalBuffers[mode] = buffer;
+          return buffer;
+        }
+
+        // Default: Warm Harmonic Reference Pad (full-spectrum Fmaj9 chord)
+        const duration = 8;
+        const length = sr * duration;
+        const buffer = audioCtx.createBuffer(2, length, sr);
+        const freqs = [65.41, 130.81, 174.61, 220.00, 261.63, 329.63, 392.00, 523.25, 1046.5, 2637.0, 5274.0];
+        const amps = [0.16, 0.12, 0.11, 0.10, 0.09, 0.08, 0.07, 0.05, 0.025, 0.012, 0.006];
+        const left = buffer.getChannelData(0);
+        const right = buffer.getChannelData(1);
+        for (let i = 0; i < length; i++) {
+          const t = i / sr;
+          const shimmer = 0.88 + 0.12 * Math.sin(2 * Math.PI * 0.25 * t);
+          let sumL = 0;
+          let sumR = 0;
+          for (let j = 0; j < freqs.length; j++) {
+            const detune = (j % 2 === 0 ? 1.0012 : 0.9988);
+            sumL += Math.sin(2 * Math.PI * freqs[j] * t) * amps[j];
+            sumR += Math.sin(2 * Math.PI * freqs[j] * detune * t) * amps[j];
+          }
+          left[i] = sumL * shimmer;
+          right[i] = sumR * shimmer;
+        }
+        signalBuffers[mode] = buffer;
+        return buffer;
+      }
+
+      function stopBufferSource() {
+        if (bufferSource) {
+          try {
+            bufferSource.stop();
+            bufferSource.disconnect();
+          } catch (_) {}
+          bufferSource = null;
+        }
+      }
+
+      function startPlayback() {
+        ensureAudioEngine();
+        if (state.sourceType === "file") {
+          stopBufferSource();
+          el.audioEl.play().then(() => {
+            state.isPlaying = true;
+            updatePlayButtonUI();
+          }).catch(() => {
+            state.isPlaying = false;
+            updatePlayButtonUI();
+          });
+        } else {
+          el.audioEl.pause();
+          stopBufferSource();
+          activeSignalBuffer = getSignalBuffer(state.signalMode);
+          bufferSource = audioCtx.createBufferSource();
+          bufferSource.buffer = activeSignalBuffer;
+          bufferSource.loop = true;
+          bufferSource.connect(preampNode);
+          bufferSource.connect(dryGain);
+          const startPos = bufferOffset % activeSignalBuffer.duration;
+          bufferSource.start(0, startPos);
+          bufferStartTime = audioCtx.currentTime - startPos;
+          state.isPlaying = true;
+          updatePlayButtonUI();
+        }
+      }
+
+      function pausePlayback() {
+        if (state.sourceType === "file") {
+          el.audioEl.pause();
+        } else if (bufferSource && audioCtx && activeSignalBuffer) {
+          bufferOffset = (audioCtx.currentTime - bufferStartTime) % activeSignalBuffer.duration;
+          stopBufferSource();
+        }
+        state.isPlaying = false;
+        updatePlayButtonUI();
+      }
+
+      function updatePlayButtonUI() {
+        el.playIcon.innerHTML = state.isPlaying
+          ? '<rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect>'
+          : '<polygon points="6 4 20 12 6 20 6 4"></polygon>';
+      }
+
+      /* -----------------------------
+         Exact Biquad Frequency Math
+      ------------------------------ */
+      function computeBandMagnitudeDb(band, freq, sampleRate = 48000) {
+        if (!band.enabled) return 0;
+        const f0 = Math.min(band.freq, sampleRate * 0.49);
+        const w0 = (2 * Math.PI * f0) / sampleRate;
+        const w = (2 * Math.PI * freq) / sampleRate;
+        const cosW0 = Math.cos(w0);
+        const sinW0 = Math.sin(w0);
+        const q = Math.max(0.1, band.q);
+        const alpha = sinW0 / (2 * q);
+        const A = Math.pow(10, band.gain / 40);
+
+        let b0 = 1, b1 = 0, b2 = 0, a0 = 1, a1 = 0, a2 = 0;
+
+        switch (band.type) {
+          case "PK":
+            b0 = 1 + alpha * A;
+            b1 = -2 * cosW0;
+            b2 = 1 - alpha * A;
+            a0 = 1 + alpha / A;
+            a1 = -2 * cosW0;
+            a2 = 1 - alpha / A;
+            break;
+          case "LS": {
+            const sq = 2 * Math.sqrt(A) * alpha;
+            b0 = A * ((A + 1) - (A - 1) * cosW0 + sq);
+            b1 = 2 * A * ((A - 1) - (A + 1) * cosW0);
+            b2 = A * ((A + 1) - (A - 1) * cosW0 - sq);
+            a0 = (A + 1) + (A - 1) * cosW0 + sq;
+            a1 = -2 * ((A - 1) + (A + 1) * cosW0);
+            a2 = (A + 1) + (A - 1) * cosW0 - sq;
+            break;
+          }
+          case "HS": {
+            const sq = 2 * Math.sqrt(A) * alpha;
+            b0 = A * ((A + 1) + (A - 1) * cosW0 + sq);
+            b1 = -2 * A * ((A - 1) + (A + 1) * cosW0);
+            b2 = A * ((A + 1) + (A - 1) * cosW0 - sq);
+            a0 = (A + 1) - (A - 1) * cosW0 + sq;
+            a1 = 2 * ((A - 1) - (A + 1) * cosW0);
+            a2 = (A + 1) - (A - 1) * cosW0 - sq;
+            break;
+          }
+          case "LP":
+            b0 = (1 - cosW0) / 2;
+            b1 = 1 - cosW0;
+            b2 = (1 - cosW0) / 2;
+            a0 = 1 + alpha;
+            a1 = -2 * cosW0;
+            a2 = 1 - alpha;
+            break;
+          case "HP":
+            b0 = (1 + cosW0) / 2;
+            b1 = -(1 + cosW0);
+            b2 = (1 + cosW0) / 2;
+            a0 = 1 + alpha;
+            a1 = -2 * cosW0;
+            a2 = 1 - alpha;
+            break;
+          case "NO":
+            b0 = 1;
+            b1 = -2 * cosW0;
+            b2 = 1;
+            a0 = 1 + alpha;
+            a1 = -2 * cosW0;
+            a2 = 1 - alpha;
+            break;
+        }
+
+        const cos1 = Math.cos(w);
+        const sin1 = Math.sin(w);
+        const cos2 = Math.cos(2 * w);
+        const sin2 = Math.sin(2 * w);
+
+        const numRe = (b0 + b1 * cos1 + b2 * cos2) / a0;
+        const numIm = (-b1 * sin1 - b2 * sin2) / a0;
+        const denRe = 1 + (a1 * cos1 + a2 * cos2) / a0;
+        const denIm = (-a1 * sin1 - a2 * sin2) / a0;
+
+        const magSq = (numRe * numRe + numIm * numIm) / Math.max(1e-24, denRe * denRe + denIm * denIm);
+        return 10 * Math.log10(Math.max(1e-12, magSq));
+      }
+
+      function computeTotalEqDb(freq) {
+        let sum = 0;
+        for (let i = 0; i < state.bands.length; i++) {
+          sum += computeBandMagnitudeDb(state.bands[i], freq);
+        }
+        return sum;
+      }
+
+      function calculatePeakBoost() {
+        let maxDb = -Infinity;
+        const steps = 160;
+        for (let i = 0; i <= steps; i++) {
+          const f = 20 * Math.pow(1000, i / steps);
+          const db = computeTotalEqDb(f);
+          if (db > maxDb) maxDb = db;
+        }
+        return Math.max(0, maxDb);
+      }
+
+      /* -----------------------------
+         Squig.link Parser & Exporter
+      ------------------------------ */
+      function parseSquigText(rawText) {
+        const text = rawText.trim();
+        if (!text) return null;
+
+        // 1. Check Wavelet GraphicEQ format
+        const graphicMatch = text.match(/GraphicEQ:\s*(.+)/i);
+        if (graphicMatch) {
+          const pairs = graphicMatch[1]
+            .split(";")
+            .map(s => s.trim().split(/\s+/).map(Number))
+            .filter(arr => arr.length >= 2 && !Number.isNaN(arr[0]) && !Number.isNaN(arr[1]));
+
+          if (pairs.length >= 4) {
+            return fitGraphicEqToPeq(pairs);
+          }
+        }
+
+        // 2. Parse Equalizer APO Parametric format
+        let preamp = 0;
+        const preampMatch = text.match(/Preamp:\s*([+-]?\d+(?:\.\d+)?)\s*dB/i);
+        if (preampMatch) {
+          preamp = clamp(parseFloat(preampMatch[1]), -18, 6);
+        }
+
+        const bands = [];
+        const lines = text.split(/?
+/);
+        const filterRegex = /Filter\s*\d*\s*:\s*(ON|OFF)\s+([A-Z]+)\s+Fc\s+(\d+(?:\.\d+)?)\s*Hz(?:\s+Gain\s+([+-]?\d+(?:\.\d+)?)\s*dB)?(?:\s+Q\s+(\d+(?:\.\d+)?))?/i;
+
+        for (const line of lines) {
+          const m = line.match(filterRegex);
+          if (!m) continue;
+          const enabled = m[1].toUpperCase() === "ON";
+          const rawType = m[2].toUpperCase();
+          let type = "PK";
+          if (rawType.startsWith("LS")) type = "LS";
+          else if (rawType.startsWith("HS")) type = "HS";
+          else if (rawType.startsWith("LP")) type = "LP";
+          else if (rawType.startsWith("HP")) type = "HP";
+          else if (rawType.startsWith("NO")) type = "NO";
+
+          const freq = clamp(Math.round(parseFloat(m[3])), 20, 20000);
+          const gain = m[4] !== undefined ? clamp(parseFloat(m[4]), -18, 18) : 0;
+          const q = m[5] !== undefined ? clamp(parseFloat(m[5]), 0.1, 15) : 1.0;
+
+          bands.push({
+            enabled,
+            type,
+            freq,
+            gain: +gain.toFixed(1),
+            q: +q.toFixed(2)
+          });
+          if (bands.length >= 12) break;
+        }
+
+        if (bands.length === 0) return null;
+        return { preamp: +preamp.toFixed(1), bands, sourceFormat: "Equalizer APO" };
+      }
+
+      // Fits Wavelet 127-band GraphicEQ into clean 10-band Parametric EQ
+      function fitGraphicEqToPeq(pairs) {
+        const freqs = pairs.map(p => p[0]);
+        const residual = pairs.map(p => p[1]);
+        const fittedBands = [];
+        const qCandidates = [0.75, 1.3, 2.2, 3.6, 5.8];
+
+        for (let b = 0; b < 10; b++) {
+          let maxIdx = 0;
+          let maxAbs = 0;
+          for (let i = 0; i < residual.length; i++) {
+            if (Math.abs(residual[i]) > maxAbs) {
+              maxAbs = Math.abs(residual[i]);
+              maxIdx = i;
+            }
+          }
+          if (maxAbs < 0.35) break;
+
+          const fc = clamp(Math.round(freqs[maxIdx]), 20, 20000);
+          const gain = clamp(+residual[maxIdx].toFixed(1), -18, 18);
+
+          let bestQ = 1.5;
+          let bestErr = Infinity;
+          for (const q of qCandidates) {
+            let err = 0;
+            const testBand = { enabled: true, type: "PK", freq: fc, gain, q };
+            for (let i = 0; i < freqs.length; i++) {
+              const diff = residual[i] - computeBandMagnitudeDb(testBand, freqs[i]);
+              err += diff * diff;
+            }
+            if (err < bestErr) {
+              bestErr = err;
+              bestQ = q;
+            }
+          }
+
+          const chosen = { enabled: true, type: "PK", freq: fc, gain, q: bestQ };
+          fittedBands.push(chosen);
+          for (let i = 0; i < freqs.length; i++) {
+            residual[i] -= computeBandMagnitudeDb(chosen, freqs[i]);
+          }
+        }
+
+        fittedBands.sort((a, b) => a.freq - b.freq);
+        let peak = 0;
+        for (let i = 0; i < freqs.length; i++) {
+          let sum = 0;
+          for (const band of fittedBands) sum += computeBandMagnitudeDb(band, freqs[i]);
+          if (sum > peak) peak = sum;
+        }
+        return {
+          preamp: +(-Math.max(0, peak)).toFixed(1),
+          bands: fittedBands,
+          sourceFormat: "Wavelet GraphicEQ (Fitted)"
+        };
+      }
+
+      function generateApoText() {
+        const lines = [`Preamp: ${state.preamp.toFixed(1)} dB`];
+        state.bands.forEach((b, idx) => {
+          const status = b.enabled ? "ON" : "OFF";
+          if (b.type === "LP" || b.type === "HP" || b.type === "NO") {
+            lines.push(`Filter ${idx + 1}: ${status} ${b.type} Fc ${Math.round(b.freq)} Hz Q ${b.q.toFixed(2)}`);
+          } else {
+            lines.push(`Filter ${idx + 1}: ${status} ${b.type} Fc ${Math.round(b.freq)} Hz Gain ${b.gain.toFixed(1)} dB Q ${b.q.toFixed(2)}`);
+          }
+        });
+        return lines.join("
+");
+      }
+
+      /* -----------------------------
+         Canvas Graph Rendering & Touch
+      ------------------------------ */
+      const MIN_FREQ = 20;
+      const MAX_FREQ = 20000;
+      const MIN_DB = -18;
+      const MAX_DB = 18;
+      const PAD = { top: 14, right: 14, bottom: 24, left: 34 };
+
+      function freqToX(freq, width) {
+        const plotW = width - PAD.left - PAD.right;
+        const norm = Math.log(clamp(freq, MIN_FREQ, MAX_FREQ) / MIN_FREQ) / Math.log(MAX_FREQ / MIN_FREQ);
+        return PAD.left + norm * plotW;
+      }
+
+      function xToFreq(x, width) {
+        const plotW = width - PAD.left - PAD.right;
+        const norm = clamp((x - PAD.left) / plotW, 0, 1);
+        return Math.round(MIN_FREQ * Math.pow(MAX_FREQ / MIN_FREQ, norm));
+      }
+
+      function dbToY(db, height) {
+        const plotH = height - PAD.top - PAD.bottom;
+        const norm = (MAX_DB - clamp(db, MIN_DB, MAX_DB)) / (MAX_DB - MIN_DB);
+        return PAD.top + norm * plotH;
+      }
+
+      function yToDb(y, height) {
+        const plotH = height - PAD.top - PAD.bottom;
+        const norm = clamp((y - PAD.top) / plotH, 0, 1);
+        return +(MAX_DB - norm * (MAX_DB - MIN_DB)).toFixed(1);
+      }
+
+      function drawGraph() {
+        const canvas = el.eqCanvas;
+        const rect = canvas.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 3);
+        const w = Math.max(200, Math.floor(rect.width));
+        const h = Math.max(160, Math.floor(rect.height));
+
+        if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
+          canvas.width = w * dpr;
+          canvas.height = h * dpr;
+        }
+
+        const ctx = canvas.getContext("2d");
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, w, h);
+
+        // Live FFT Spectrum Backdrop
+        if (state.showFft && analyserNode && state.isPlaying && fftData) {
+          analyserNode.getByteFrequencyData(fftData);
+          const sr = audioCtx ? audioCtx.sampleRate : 48000;
+          const binHz = sr / analyserNode.fftSize;
+          ctx.beginPath();
+          ctx.moveTo(PAD.left, h - PAD.bottom);
+          for (let i = 1; i < fftData.length; i++) {
+            const f = i * binHz;
+            if (f < MIN_FREQ || f > MAX_FREQ) continue;
+            const x = freqToX(f, w);
+            const normAmp = fftData[i] / 255;
+            const y = (h - PAD.bottom) - normAmp * (h - PAD.top - PAD.bottom) * 0.85;
+            ctx.lineTo(x, y);
+          }
+          ctx.lineTo(w - PAD.right, h - PAD.bottom);
+          ctx.closePath();
+          ctx.fillStyle = "rgba(0, 122, 255, 0.08)";
+          ctx.fill();
+        }
+
+        // Grid Lines: dB
+        const dbTicks = [-12, -6, 0, 6, 12];
+        ctx.font = "600 10px -apple-system, BlinkMacSystemFont, sans-serif";
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+
+        dbTicks.forEach(db => {
+          const y = dbToY(db, h);
+          ctx.beginPath();
+          ctx.moveTo(PAD.left, y);
+          ctx.lineTo(w - PAD.right, y);
+          ctx.strokeStyle = db === 0 ? "#CBD5E1" : "#E2E8F0";
+          ctx.lineWidth = db === 0 ? 1.4 : 1;
+          ctx.stroke();
+
+          ctx.fillStyle = db === 0 ? "#475569" : "#94A3B8";
+          ctx.fillText((db > 0 ? "+" : "") + db, PAD.left - 6, y);
+        });
+
+        // Grid Lines: Frequencies
+        const freqTicks = [
+          { f: 20, label: "20" },
+          { f: 50, label: "50" },
+          { f: 100, label: "100" },
+          { f: 250, label: "250" },
+          { f: 500, label: "500" },
+          { f: 1000, label: "1k" },
+          { f: 2500, label: "2.5k" },
+          { f: 5000, label: "5k" },
+          { f: 10000, label: "10k" },
+          { f: 20000, label: "20k" }
+        ];
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        freqTicks.forEach(t => {
+          const x = freqToX(t.f, w);
+          ctx.beginPath();
+          ctx.moveTo(x, PAD.top);
+          ctx.lineTo(x, h - PAD.bottom);
+          ctx.strokeStyle = "#E2E8F0";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          ctx.fillStyle = "#94A3B8";
+          ctx.fillText(t.label, x, h - PAD.bottom + 6);
+        });
+
+        const zeroY = dbToY(0, h);
+        const samples = 240;
+
+        // Selected Band Translucent Curve
+        const selBand = state.bands[state.selectedBand];
+        if (selBand && selBand.enabled) {
+          ctx.beginPath();
+          ctx.moveTo(PAD.left, zeroY);
+          for (let i = 0; i <= samples; i++) {
+            const f = MIN_FREQ * Math.pow(MAX_FREQ / MIN_FREQ, i / samples);
+            const x = freqToX(f, w);
+            const y = dbToY(computeBandMagnitudeDb(selBand, f), h);
+            ctx.lineTo(x, y);
+          }
+          ctx.lineTo(w - PAD.right, zeroY);
+          ctx.closePath();
+          ctx.fillStyle = "rgba(0, 122, 255, 0.13)";
+          ctx.fill();
+        }
+
+        // Net Output Curve (EQ + Preamp)
+        ctx.save();
+        ctx.beginPath();
+        for (let i = 0; i <= samples; i++) {
+          const f = MIN_FREQ * Math.pow(MAX_FREQ / MIN_FREQ, i / samples);
+          const x = freqToX(f, w);
+          const netDb = computeTotalEqDb(f) + state.preamp;
+          const y = dbToY(netDb, h);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.setLineDash([5, 4]);
+        ctx.strokeStyle = state.bypass ? "#94A3B8" : "#10B981";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+
+        // Main Combined EQ Curve
+        ctx.beginPath();
+        for (let i = 0; i <= samples; i++) {
+          const f = MIN_FREQ * Math.pow(MAX_FREQ / MIN_FREQ, i / samples);
+          const x = freqToX(f, w);
+          const eqDb = computeTotalEqDb(f);
+          const y = dbToY(eqDb, h);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = state.bypass ? "#94A3B8" : "#007AFF";
+        ctx.lineWidth = 2.6;
+        ctx.stroke();
+
+        // Interactive Band Handles
+        state.bands.forEach((b, idx) => {
+          const x = freqToX(b.freq, w);
+          const yVal = (b.type === "LP" || b.type === "HP" || b.type === "NO") ? 0 : b.gain;
+          const y = dbToY(yVal, h);
+          const isSelected = idx === state.selectedBand;
+
+          ctx.beginPath();
+          ctx.arc(x, y, isSelected ? 11 : 8.5, 0, Math.PI * 2);
+          ctx.fillStyle = !b.enabled
+            ? "#CBD5E1"
+            : isSelected
+              ? "#007AFF"
+              : "#FFFFFF";
+          ctx.fill();
+          ctx.lineWidth = isSelected ? 2.5 : 2;
+          ctx.strokeStyle = !b.enabled ? "#94A3B8" : "#007AFF";
+          ctx.stroke();
+
+          ctx.fillStyle = isSelected && b.enabled ? "#FFFFFF" : "#0F172A";
+          ctx.font = "700 10px -apple-system, BlinkMacSystemFont, sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(String(idx + 1), x, y + 0.5);
+        });
+      }
+
+      /* -----------------------------
+         UI Synchronization
+      ------------------------------ */
+      function formatFreq(f) {
+        return f >= 1000 ? `${(f / 1000).toFixed(f >= 10000 ? 1 : 2)}k` : `${Math.round(f)}`;
+      }
+
+      function freqToSlider(f) {
+        return Math.round(1000 * Math.log(clamp(f, 20, 20000) / 20) / Math.log(1000));
+      }
+
+      function sliderToFreq(v) {
+        return Math.round(20 * Math.pow(1000, clamp(v, 0, 1000) / 1000));
+      }
+
+      function qToSlider(q) {
+        return Math.round(1000 * Math.log(clamp(q, 0.1, 15) / 0.1) / Math.log(150));
+      }
+
+      function sliderToQ(v) {
+        return +(0.1 * Math.pow(150, clamp(v, 0, 1000) / 1000)).toFixed(2);
+      }
+
+      function clamp(val, min, max) {
+        return Math.min(max, Math.max(min, val));
+      }
+
+      function updateAllUI() {
+        // Bypass button
+        el.bypassBtn.classList.toggle("is-bypassed", state.bypass);
+        el.bypassBtn.setAttribute("aria-pressed", String(state.bypass));
+        el.bypassLabel.textContent = state.bypass ? "A/B Bypassed" : "EQ Active";
+
+        // Band count
+        el.bandCountBadge.textContent = `${state.bands.length} Band${state.bands.length === 1 ? "" : "s"}`;
+
+        // Preamp & Peak Boost
+        el.preampSlider.value = state.preamp;
+        el.preampInput.value = state.preamp.toFixed(1);
+        const peakBoost = calculatePeakBoost();
+        const clippingRisk = peakBoost + state.preamp > 0.2;
+        el.peakReadout.textContent = `Peak Boost: +${peakBoost.toFixed(1)} dB`;
+        el.peakReadout.style.color = clippingRisk ? "var(--rose)" : "var(--text-secondary)";
+
+        el.limiterBtn.classList.toggle("active", state.limiter);
+        el.fftToggleBtn.classList.toggle("active", state.showFft);
+
+        // Band Chips
+        el.bandChips.innerHTML = "";
+        state.bands.forEach((b, idx) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "band-chip" + (idx === state.selectedBand ? " selected" : "") + (!b.enabled ? " disabled" : "");
+          btn.innerHTML = `<span class="b-num">#${idx + 1} ${b.type}</span><span class="b-freq tabular">${formatFreq(b.freq)}</span>`;
+          btn.addEventListener("click", () => {
+            state.selectedBand = idx;
+            updateAllUI();
+          });
+          el.bandChips.appendChild(btn);
+        });
+
+        // Selected Band Editor
+        const sel = state.bands[state.selectedBand];
+        if (sel) {
+          el.selectedBandTitle.textContent = `Band ${state.selectedBand + 1} (${sel.type})`;
+          el.bandOnToggle.classList.toggle("active", sel.enabled);
+          el.bandOnToggle.textContent = sel.enabled ? "Enabled" : "Muted";
+          el.deleteBandBtn.disabled = state.bands.length <= 1;
+
+          el.typeSelector.querySelectorAll(".type-pill").forEach(pill => {
+            pill.classList.toggle("active", pill.dataset.type === sel.type);
+          });
+
+          const hasGain = sel.type === "PK" || sel.type === "LS" || sel.type === "HS";
+          el.gainParamGroup.style.opacity = hasGain ? "1" : "0.42";
+          el.gainSlider.disabled = !hasGain;
+          el.gainInput.disabled = !hasGain;
+
+          el.freqSlider.value = freqToSlider(sel.freq);
+          el.freqInput.value = Math.round(sel.freq);
+
+          el.gainSlider.value = sel.gain;
+          el.gainInput.value = sel.gain.toFixed(1);
+
+          el.qSlider.value = qToSlider(sel.q);
+          el.qInput.value = sel.q.toFixed(2);
+        }
+
+        // Overview List
+        el.allBandsList.innerHTML = "";
+        state.bands.forEach((b, idx) => {
+          const row = document.createElement("div");
+          row.className = "overview-row tabular" + (idx === state.selectedBand ? " selected" : "") + (!b.enabled ? " off" : "");
+          const gainStr = (b.type === "LP" || b.type === "HP" || b.type === "NO")
+            ? "—"
+            : `${b.gain >= 0 ? "+" : ""}${b.gain.toFixed(1)} dB`;
+          row.innerHTML = `
+            <strong>#${idx + 1}</strong>
+            <span class="badge-type">${b.type}</span>
+            <span>${Math.round(b.freq)} Hz</span>
+            <span style="text-align:right;font-weight:600;">${gainStr}</span>
+            <span style="text-align:right;color:var(--text-secondary);">Q ${b.q.toFixed(2)}</span>
+          `;
+          row.addEventListener("click", () => {
+            state.selectedBand = idx;
+            updateAllUI();
+          });
+          el.allBandsList.appendChild(row);
+        });
+
+        drawGraph();
+      }
+
+      /* -----------------------------
+         Preset Storage Management
+      ------------------------------ */
+      function loadCustomPresets() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) state.customPresets = JSON.parse(raw);
+        } catch (_) {
+          state.customPresets = [];
+        }
+      }
+
+      function saveCustomPresets() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state.customPresets));
+        } catch (_) {}
+      }
+
+      function renderPresetDropdown() {
+        el.presetSelect.innerHTML = "";
+
+        const builtInGroup = document.createElement("optgroup");
+        builtInGroup.label = "AirPods Target Curves";
+        BUILTIN_PRESETS.forEach(p => {
+          const opt = document.createElement("option");
+          opt.value = p.id;
+          opt.textContent = p.name;
+          builtInGroup.appendChild(opt);
+        });
+        el.presetSelect.appendChild(builtInGroup);
+
+        if (state.customPresets.length > 0) {
+          const customGroup = document.createElement("optgroup");
+          customGroup.label = "Saved Squig.link Profiles";
+          state.customPresets.forEach(p => {
+            const opt = document.createElement("option");
+            opt.value = p.id;
+            opt.textContent = p.name;
+            customGroup.appendChild(opt);
+          });
+          el.presetSelect.appendChild(customGroup);
+        }
+
+        if (state.activePresetId === "imported") {
+          const opt = document.createElement("option");
+          opt.value = "imported";
+          opt.textContent = "Imported Squig.link Profile (Unsaved)";
+          el.presetSelect.insertBefore(opt, el.presetSelect.firstChild);
+        }
+
+        el.presetSelect.value = state.activePresetId;
+        el.deletePresetBtn.style.display = state.activePresetId.startsWith("custom-") ? "inline-flex" : "none";
+      }
+
+      function applyPresetById(id) {
+        const all = [...BUILTIN_PRESETS, ...state.customPresets];
+        const found = all.find(p => p.id === id);
+        if (!found) return;
+        state.activePresetId = found.id;
+        state.preamp = found.preamp;
+        state.bands = JSON.parse(JSON.stringify(found.bands));
+        state.selectedBand = 0;
+        rebuildFilterChain();
+        renderPresetDropdown();
+        updateAllUI();
+        el.importStatus.textContent = `Loaded "${found.name}" (${found.bands.length} bands).`;
+      }
+
+      /* -----------------------------
+         Event Listeners
+      ------------------------------ */
+      // Bypass toggle
+      el.bypassBtn.addEventListener("click", () => {
+        state.bypass = !state.bypass;
+        syncAudioParameters();
+        updateAllUI();
+      });
+
+      // Preset selection
+      el.presetSelect.addEventListener("change", e => {
+        applyPresetById(e.target.value);
+      });
+
+      el.savePresetBtn.addEventListener("click", () => {
+        const name = window.prompt("Name this AirPods EQ preset:", "My Squig.link Tune");
+        if (!name || !name.trim()) return;
+        const id = "custom-" + Date.now();
+        state.customPresets.unshift({
+          id,
+          name: name.trim(),
+          preamp: state.preamp,
+          bands: JSON.parse(JSON.stringify(state.bands))
+        });
+        saveCustomPresets();
+        state.activePresetId = id;
+        renderPresetDropdown();
+        el.importStatus.textContent = `Saved preset "${name.trim()}".`;
+      });
+
+      el.deletePresetBtn.addEventListener("click", () => {
+        if (!state.activePresetId.startsWith("custom-")) return;
+        state.customPresets = state.customPresets.filter(p => p.id !== state.activePresetId);
+        saveCustomPresets();
+        applyPresetById(BUILTIN_PRESETS[0].id);
+      });
+
+      // Squig.link File Upload & Paste
+      el.uploadBtn.addEventListener("click", () => el.fileInput.click());
+
+      el.fileInput.addEventListener("change", e => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const parsed = parseSquigText(String(reader.result || ""));
+          if (!parsed) {
+            el.importStatus.textContent = "Could not find valid Equalizer APO or Wavelet filters in file.";
+            return;
+          }
+          state.preamp = parsed.preamp;
+          state.bands = parsed.bands;
+          state.selectedBand = 0;
+          state.activePresetId = "imported";
+          rebuildFilterChain();
+          renderPresetDropdown();
+          updateAllUI();
+          el.importStatus.textContent = `Imported ${parsed.bands.length} bands from ${file.name} (${parsed.sourceFormat}).`;
+        };
+        reader.readAsText(file);
+        e.target.value = "";
+      });
+
+      el.pasteToggleBtn.addEventListener("click", () => {
+        el.pasteDrawer.classList.toggle("open");
+        if (el.pasteDrawer.classList.contains("open")) el.squigTextarea.focus();
+      });
+
+      el.closePasteBtn.addEventListener("click", () => {
+        el.pasteDrawer.classList.remove("open");
+      });
+
+      el.parsePasteBtn.addEventListener("click", () => {
+        const parsed = parseSquigText(el.squigTextarea.value);
+        if (!parsed) {
+          el.importStatus.textContent = "Invalid text — paste Equalizer APO 'Filter 1: ON PK...' or Wavelet GraphicEQ.";
+          return;
+        }
+        state.preamp = parsed.preamp;
+        state.bands = parsed.bands;
+        state.selectedBand = 0;
+        state.activePresetId = "imported";
+        el.pasteDrawer.classList.remove("open");
+        rebuildFilterChain();
+        renderPresetDropdown();
+        updateAllUI();
+        el.importStatus.textContent = `Applied ${parsed.bands.length} bands (${parsed.sourceFormat}).`;
+      });
+
+      el.copyApoBtn.addEventListener("click", async () => {
+        const txt = generateApoText();
+        try {
+          await navigator.clipboard.writeText(txt);
+          el.importStatus.textContent = "Copied Equalizer APO profile to clipboard.";
+        } catch (_) {
+          el.squigTextarea.value = txt;
+          el.pasteDrawer.classList.add("open");
+          el.importStatus.textContent = "Profile placed in text box for copying.";
+        }
+      });
+
+      el.exportTxtBtn.addEventListener("click", () => {
+        const blob = new Blob([generateApoText() + "
+"], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "AirPods_SquigLink_PEQ.txt";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        el.importStatus.textContent = "Downloaded AirPods_SquigLink_PEQ.txt.";
+      });
+
+      // Preamp & Utilities
+      el.preampSlider.addEventListener("input", e => {
+        state.preamp = clamp(parseFloat(e.target.value), -18, 6);
+        syncAudioParameters();
+        updateAllUI();
+      });
+
+      el.preampInput.addEventListener("change", e => {
+        const val = parseFloat(e.target.value);
+        if (!Number.isNaN(val)) state.preamp = +clamp(val, -18, 6).toFixed(1);
+        syncAudioParameters();
+        updateAllUI();
+      });
+
+      el.autoPreampBtn.addEventListener("click", () => {
+        const peak = calculatePeakBoost();
+        state.preamp = +(-Math.min(18, peak)).toFixed(1);
+        syncAudioParameters();
+        updateAllUI();
+        el.importStatus.textContent = `Auto-leveled preamp to ${state.preamp.toFixed(1)} dB to prevent clipping.`;
+      });
+
+      el.limiterBtn.addEventListener("click", () => {
+        state.limiter = !state.limiter;
+        syncAudioParameters();
+        updateAllUI();
+      });
+
+      el.fftToggleBtn.addEventListener("click", () => {
+        state.showFft = !state.showFft;
+        drawGraph();
+        updateAllUI();
+      });
+
+      document.querySelectorAll(".pan-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.pan = parseFloat(btn.dataset.pan);
+          document.querySelectorAll(".pan-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          syncAudioParameters();
+        });
+      });
+
+      // Audio Player & Signal Lab
+      el.playPauseBtn.addEventListener("click", () => {
+        if (state.isPlaying) pausePlayback();
+        else startPlayback();
+      });
+
+      el.signalModeSelect.addEventListener("change", e => {
+        state.signalMode = e.target.value;
+        state.sourceType = "signal";
+        bufferOffset = 0;
+        const labelText = el.signalModeSelect.options[el.signalModeSelect.selectedIndex].text.replace("Signal Lab: ", "");
+        el.trackNameLabel.textContent = labelText;
+        el.trackSubLabel.textContent = "Built-in test generator · Instant A/B audition";
+        if (state.isPlaying) startPlayback();
+      });
+
+      el.audioFileBtn.addEventListener("click", () => el.audioFileInput.click());
+
+      el.audioFileInput.addEventListener("change", e => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        ensureAudioEngine();
+        stopBufferSource();
+
+        if (state.currentObjectUrl) {
+          URL.revokeObjectURL(state.currentObjectUrl);
+        }
+        state.currentObjectUrl = URL.createObjectURL(file);
+        state.sourceType = "file";
+        el.audioEl.src = state.currentObjectUrl;
+        el.trackNameLabel.textContent = file.name.replace(/\.[^/.]+$/, "");
+        el.trackSubLabel.textContent = "Local lossless/compressed audio file";
+        startPlayback();
+        e.target.value = "";
+      });
+
+      el.audioEl.addEventListener("ended", () => {
+        state.isPlaying = false;
+        updatePlayButtonUI();
+      });
+
+      el.seekSlider.addEventListener("input", e => {
+        const norm = parseFloat(e.target.value) / 1000;
+        if (state.sourceType === "file" && Number.isFinite(el.audioEl.duration)) {
+          el.audioEl.currentTime = norm * el.audioEl.duration;
+        } else if (activeSignalBuffer) {
+          bufferOffset = norm * activeSignalBuffer.duration;
+          if (state.isPlaying) startPlayback();
+        }
+      });
+
+      // Band Management
+      el.addBandBtn.addEventListener("click", () => {
+        if (state.bands.length >= 12) return;
+        state.bands.push({ enabled: true, type: "PK", freq: 1000, gain: 0.0, q: 1.41 });
+        state.selectedBand = state.bands.length - 1;
+        rebuildFilterChain();
+        updateAllUI();
+      });
+
+      el.resetBandsBtn.addEventListener("click", () => {
+        state.preamp = 0;
+        state.bands.forEach(b => {
+          b.gain = 0;
+          b.enabled = true;
+        });
+        syncAudioParameters();
+        updateAllUI();
+      });
+
+      el.bandOnToggle.addEventListener("click", () => {
+        const b = state.bands[state.selectedBand];
+        if (!b) return;
+        b.enabled = !b.enabled;
+        syncAudioParameters();
+        updateAllUI();
+      });
+
+      el.deleteBandBtn.addEventListener("click", () => {
+        if (state.bands.length <= 1) return;
+        state.bands.splice(state.selectedBand, 1);
+        state.selectedBand = Math.min(state.selectedBand, state.bands.length - 1);
+        rebuildFilterChain();
+        updateAllUI();
+      });
+
+      el.typeSelector.querySelectorAll(".type-pill").forEach(pill => {
+        pill.addEventListener("click", () => {
+          const b = state.bands[state.selectedBand];
+          if (!b) return;
+          b.type = pill.dataset.type;
+          syncAudioParameters();
+          updateAllUI();
+        });
+      });
+
+      el.freqSlider.addEventListener("input", e => {
+        const b = state.bands[state.selectedBand];
+        if (!b) return;
+        b.freq = sliderToFreq(parseFloat(e.target.value));
+        syncAudioParameters();
+        updateAllUI();
+      });
+
+      el.freqInput.addEventListener("change", e => {
+        const b = state.bands[state.selectedBand];
+        const v = parseFloat(e.target.value);
+        if (!b || Number.isNaN(v)) return;
+        b.freq = clamp(Math.round(v), 20, 20000);
+        syncAudioParameters();
+        updateAllUI();
+      });
+
+      el.gainSlider.addEventListener("input", e => {
+        const b = state.bands[state.selectedBand];
+        if (!b) return;
+        b.gain = +clamp(parseFloat(e.target.value), -18, 18).toFixed(1);
+        syncAudioParameters();
+        updateAllUI();
+      });
+
+      el.gainInput.addEventListener("change", e => {
+        const b = state.bands[state.selectedBand];
+        const v = parseFloat(e.target.value);
+        if (!b || Number.isNaN(v)) return;
+        b.gain = +clamp(v, -18, 18).toFixed(1);
+        syncAudioParameters();
+        updateAllUI();
+      });
+
+      el.qSlider.addEventListener("input", e => {
+        const b = state.bands[state.selectedBand];
+        if (!b) return;
+        b.q = sliderToQ(parseFloat(e.target.value));
+        syncAudioParameters();
+        updateAllUI();
+      });
+
+      el.qInput.addEventListener("change", e => {
+        const b = state.bands[state.selectedBand];
+        const v = parseFloat(e.target.value);
+        if (!b || Number.isNaN(v)) return;
+        b.q = +clamp(v, 0.1, 15).toFixed(2);
+        syncAudioParameters();
+        updateAllUI();
+      });
+
+      /* -----------------------------
+         Touch & Pointer Graph Dragging
+      ------------------------------ */
+      function showTooltip(band, idx) {
+        const gText = (band.type === "LP" || band.type === "HP" || band.type === "NO")
+          ? band.type
+          : `${band.gain >= 0 ? "+" : ""}${band.gain.toFixed(1)} dB`;
+        el.canvasTooltip.textContent = `#${idx + 1} · ${Math.round(band.freq)} Hz · ${gText}`;
+        el.canvasTooltip.classList.add("visible");
+      }
+
+      el.eqCanvas.addEventListener("pointerdown", e => {
+        const rect = el.eqCanvas.getBoundingClientRect();
+        const px = e.clientX - rect.left;
+        const py = e.clientY - rect.top;
+
+        let nearestIdx = -1;
+        let minDist = 30;
+        state.bands.forEach((b, idx) => {
+          const bx = freqToX(b.freq, rect.width);
+          const by = dbToY((b.type === "LP" || b.type === "HP" || b.type === "NO") ? 0 : b.gain, rect.height);
+          const d = Math.hypot(px - bx, py - by);
+          if (d < minDist) {
+            minDist = d;
+            nearestIdx = idx;
+          }
+        });
+
+        if (nearestIdx !== -1) {
+          state.selectedBand = nearestIdx;
+          state.draggingBand = nearestIdx;
+          el.eqCanvas.setPointerCapture(e.pointerId);
+          showTooltip(state.bands[nearestIdx], nearestIdx);
+          updateAllUI();
+        }
+      });
+
+      el.eqCanvas.addEventListener("pointermove", e => {
+        if (state.draggingBand === -1) return;
+        const b = state.bands[state.draggingBand];
+        if (!b) return;
+        const rect = el.eqCanvas.getBoundingClientRect();
+        const px = e.clientX - rect.left;
+        const py = e.clientY - rect.top;
+
+        b.freq = xToFreq(px, rect.width);
+        if (b.type === "PK" || b.type === "LS" || b.type === "HS") {
+          b.gain = yToDb(py, rect.height);
+        }
+        showTooltip(b, state.draggingBand);
+        syncAudioParameters();
+        updateAllUI();
+      });
+
+      function endDrag() {
+        if (state.draggingBand !== -1) {
+          state.draggingBand = -1;
+          el.canvasTooltip.classList.remove("visible");
+        }
+      }
+
+      el.eqCanvas.addEventListener("pointerup", endDrag);
+      el.eqCanvas.addEventListener("pointercancel", endDrag);
+
+      /* -----------------------------
+         Animation Loop (RTA & Timer)
+      ------------------------------ */
+      function formatTime(sec) {
+        if (!Number.isFinite(sec) || sec < 0) return "0:00";
+        const m = Math.floor(sec / 60);
+        const s = Math.floor(sec % 60);
+        return `${m}:${s < 10 ? "0" : ""}${s}`;
+      }
+
+      function tick() {
+        if (state.isPlaying) {
+          if (state.sourceType === "file" && Number.isFinite(el.audioEl.duration) && el.audioEl.duration > 0) {
+            const cur = el.audioEl.currentTime;
+            const dur = el.audioEl.duration;
+            el.trackTimeLabel.textContent = `${formatTime(cur)} / ${formatTime(dur)}`;
+            el.seekSlider.value = Math.round((cur / dur) * 1000);
+          } else if (activeSignalBuffer && audioCtx) {
+            const dur = activeSignalBuffer.duration;
+            const cur = (audioCtx.currentTime - bufferStartTime) % dur;
+            el.trackTimeLabel.textContent = `${formatTime(cur)} / ${formatTime(dur)}`;
+            el.seekSlider.value = Math.round((cur / dur) * 1000);
+          }
+          if (state.showFft) drawGraph();
+        }
+        requestAnimationFrame(tick);
+      }
+
+      window.addEventListener("resize", drawGraph);
+
+      // Initialize App
+      loadCustomPresets();
+      renderPresetDropdown();
+      updateAllUI();
+      requestAnimationFrame(tick);
+    })();
+  </script>
+</body>
+</html>
